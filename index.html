@@ -243,6 +243,50 @@
   }
   .link.fechar { justify-self: end; }
 
+  /* Diálogo de entrar / criar conta / recuperar senha */
+  #dlg { width: min(440px, calc(100% - 32px)); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(77, 141, 255, 0.12); }
+  .dlg-barra { height: 4px; margin: -28px -28px 4px; background: linear-gradient(90deg, #4D8DFF, #2F6BFF, #35E0F0); }
+  #dlg .dlg-login { padding: 28px 28px 24px; gap: 16px; }
+  .dlg-topo { display: grid; justify-items: center; text-align: center; gap: 6px; }
+  .dlg-icone {
+    width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+    font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff;
+    background: linear-gradient(160deg, #4D8DFF, #0F1F52); box-shadow: 0 10px 24px rgba(47, 107, 255, 0.35);
+  }
+  .dlg-topo h2 { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 1.35rem !important; letter-spacing: -0.01em; margin-top: 4px; }
+  .dlg-sub { color: var(--tinta-suave); font-size: 0.92rem; }
+  .abas { background: #0A1430; padding: 4px; border-radius: 12px; border: 1px solid var(--borda); }
+  .abas[hidden] { display: none; }
+  .abas .aba { border: 2px solid transparent; background: transparent; color: var(--tinta-suave); padding: 9px; }
+  .abas .aba:hover { color: var(--tinta); }
+  .abas .aba[aria-selected="true"] {
+    background: linear-gradient(135deg, #5B8CFF, #2F6BFF); border-color: #5B8CFF; color: #fff;
+    box-shadow: 0 6px 16px rgba(47, 107, 255, 0.35);
+  }
+  .form-conta { display: grid; gap: 14px; }
+  .campo > label { font-size: 0.9rem; color: var(--tinta-suave); }
+  .campo input { width: 100%; }
+  .rotulo-linha { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .rotulo-linha .link { font-size: 0.85rem; }
+  .entrada-senha { position: relative; display: flex; }
+  .entrada-senha input { padding-right: 84px; }
+  .olho {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    background: var(--papel-2); color: var(--azul-claro);
+    border: 1px solid var(--borda); border-radius: 8px; padding: 5px 10px;
+  }
+  .olho:hover { border-color: var(--azul-brilho); }
+  .forca { display: grid; gap: 6px; }
+  .forca[hidden] { display: none; }
+  .barra { height: 6px; border-radius: 999px; background: #0A1430; overflow: hidden; border: 1px solid var(--borda); }
+  .barra span { display: block; height: 100%; width: 0; background: var(--erro); transition: width 0.25s ease, background 0.25s ease; }
+  .forca small { font-size: 0.8rem; color: var(--tinta-suave); min-height: 1.1em; }
+  .dica { color: var(--tinta-suave); font-size: 0.82rem; line-height: 1.45; }
+  #dlg .aviso { text-align: center; }
+  #dlg .botao.grande { width: 100%; }
+  #voltarLogin, #fechar { justify-self: center; }
+
   .botao, .aba, .filtro, .link, .jogo {
     transition: transform 0.12s ease, filter 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease, border-color 0.18s ease;
   }
@@ -546,23 +590,67 @@
 <footer>Aqua Store &copy; 2026</footer>
 
 <dialog id="dlg" aria-labelledby="dlgTitulo">
-  <div class="dlg-corpo">
-    <div class="abas" role="tablist">
+  <div class="dlg-corpo dlg-login">
+    <div class="dlg-barra" aria-hidden="true"></div>
+    <div class="dlg-topo">
+      <span class="dlg-icone" aria-hidden="true">A</span>
+      <h2 id="dlgTitulo">Entrar na sua conta</h2>
+      <p class="dlg-sub" id="dlgSub">Bem-vindo de volta à Aqua Store.</p>
+    </div>
+    <div class="abas" id="abas" role="tablist">
       <button class="aba" id="abaEntrar" role="tab" aria-selected="true" type="button">Entrar</button>
       <button class="aba" id="abaCriar" role="tab" aria-selected="false" type="button">Criar conta</button>
     </div>
-    <h2 id="dlgTitulo" style="font-size:1.2rem">Entrar na sua conta</h2>
     <div class="status" id="statusLogin" role="status"></div>
     <button class="link" id="usarTeste" type="button" hidden>Usar modo de teste (só neste navegador)</button>
     <button class="link" id="retestar" type="button" hidden>Testar a conexão de novo</button>
-    <form id="formConta" style="display:grid;gap:14px" novalidate>
-      <label class="campo">Nome de usuário<input id="usuario" type="text" autocomplete="username" maxlength="20"></label>
-      <label class="campo">Senha<input id="senha" type="password" autocomplete="current-password"></label>
-      <small style="color:var(--tinta-suave)">Nome: 3 a 20 letras, números ou _ (sem espaços). Senha: 8 caracteres ou mais.</small>
+    <form id="formConta" class="form-conta" novalidate>
+      <div class="campo" id="campoNome" style="display:none">
+        <label for="usuario">Nome de usuário</label>
+        <input id="usuario" type="text" autocomplete="nickname" maxlength="20">
+      </div>
+      <div class="campo">
+        <label for="email">E-mail (Gmail ou outro)</label>
+        <input id="email" type="email" autocomplete="email" inputmode="email">
+      </div>
+      <div class="campo" id="campoSenha">
+        <div class="rotulo-linha">
+          <label for="senha">Senha</label>
+          <button class="link" id="esqueci" type="button">Esqueci minha senha</button>
+        </div>
+        <div class="entrada-senha">
+          <input id="senha" type="password" autocomplete="current-password">
+          <button class="olho" type="button" data-alvo="senha" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <div class="forca" id="forca" hidden>
+        <div class="barra"><span id="barraForca"></span></div>
+        <small id="textoForca"></small>
+      </div>
+      <div class="campo" id="campoConfirma" hidden>
+        <label for="senha2">Repita a senha</label>
+        <div class="entrada-senha">
+          <input id="senha2" type="password" autocomplete="new-password">
+          <button class="olho" type="button" data-alvo="senha2" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <small class="dica" id="dicaConta">Entre com o e-mail e a senha da sua conta.</small>
       <div class="aviso" id="aviso" role="status"></div>
       <button class="botao grande" id="enviar" type="submit">Entrar</button>
     </form>
+    <button class="link" id="voltarLogin" type="button" hidden>← Voltar ao login</button>
     <button class="link fechar" id="fechar" type="button">Fechar</button>
+  </div>
+</dialog>
+
+<dialog id="dlgVerificar" aria-labelledby="tituloVerificar">
+  <div class="dlg-corpo">
+    <h2 id="tituloVerificar" style="font-size:1.2rem">Confirme seu e-mail</h2>
+    <p id="textoVerificar" style="color:var(--tinta-suave)"></p>
+    <div class="aviso" id="avisoVerificar" role="status"></div>
+    <button class="botao grande" id="jaConfirmei" type="button">Já confirmei</button>
+    <button class="botao secundario" id="reenviarLink" type="button">Reenviar e-mail</button>
+    <button class="link fechar" id="fecharVerificar" type="button">Fechar</button>
   </div>
 </dialog>
 
@@ -669,8 +757,8 @@
     appId: "1:91203674644:web:77ac5b263205d295f27d01"
   };
 
-  // O Firebase exige um e-mail por trás de toda conta. Como a loja usa só nome e senha,
-  // o site monta um e-mail interno a partir do nome. A pessoa nunca vê nem digita isso.
+  // A conta usa o e-mail real que a pessoa digita. O endereço interno abaixo serve só
+  // para testar a conexão com o Firebase ao abrir a tela de login.
   const DOMINIO = "@" + firebaseConfig.authDomain;
   const URL_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts:";
   const CHAVE_SESSAO = "lojaSessao";
@@ -684,8 +772,8 @@
   let sessaoMemoria = null;
   let contasMemoria = {};
   let conexao = { feita: false, ok: false, texto: "" };
+  let pendente = null; // cadastro esperando a confirmação do e-mail (só na memória)
 
-  function emailInterno(usuario) { return usuario.toLowerCase() + DOMINIO; }
 
   /* ---------- guardar dados no navegador (com plano B na memória) ---------- */
   function lerJSON(chave, padrao) {
@@ -707,19 +795,21 @@
   /* ---------- mensagens de erro ---------- */
   const erros = {
     "rede": "Não consegui falar com o Firebase. Confira a internet e abra o site pelo seu computador (a visualização dentro do Claude bloqueia conexões externas).",
-    "em-uso": "Esse nome já está em uso. Escolha outro.",
+    "em-uso": "Esse e-mail já tem uma conta. Clique em Entrar.",
     "senha-fraca": "Senha fraca. Use pelo menos 8 caracteres.",
-    "credenciais": "Nome ou senha incorretos.",
+    "credenciais": "E-mail ou senha incorretos.",
     "muitas-tentativas": "Muitas tentativas. Espere alguns minutos e tente de novo.",
-    "metodo-desativado": "O login por nome e senha está desligado. No Firebase: Authentication > Método de login > E-mail/senha > Ativar > Salvar.",
+    "metodo-desativado": "O login por e-mail e senha está desligado. No Firebase: Authentication > Método de login > E-mail/senha > Ativar > Salvar.",
     "auth-nao-iniciado": "O Authentication ainda não foi iniciado. No Firebase, abra Authentication e clique em Vamos começar.",
     "chave-invalida": "A apiKey no index.html está errada. Copie de novo no Firebase (Configurações do projeto > Seus apps).",
     "chave-restrita": "A apiKey está restrita a certos endereços. No Google Cloud: APIs e serviços > Credenciais > chave do navegador > Restrições de aplicativo: Nenhuma.",
     "cadastro-desativado": "Criar contas está desativado no Firebase (Authentication > Configurações > Ações do usuário).",
     "nome-invalido": "Nome inválido. Use só letras, números e _ (de 3 a 20 caracteres).",
+    "email-invalido": "Esse e-mail não parece válido. Confira e tente de novo.",
     "conta-desativada": "Essa conta foi desativada.",
-    "teste-em-uso": "Esse nome já existe neste navegador. Escolha outro.",
-    "teste-credenciais": "Nome ou senha incorretos."
+    "sessao": "Sua sessão expirou. Clique em Sair, entre de novo e tente outra vez.",
+    "teste-em-uso": "Esse e-mail já existe neste navegador. Clique em Entrar.",
+    "teste-credenciais": "E-mail ou senha incorretos."
   };
 
   function codigoDe(msg) {
@@ -732,8 +822,9 @@
     if (/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED/.test(msg)) { return "metodo-desativado"; }
     if (/CONFIGURATION_NOT_FOUND/.test(msg)) { return "auth-nao-iniciado"; }
     if (/ADMIN_ONLY_OPERATION/.test(msg)) { return "cadastro-desativado"; }
-    if (/INVALID_EMAIL/.test(msg)) { return "nome-invalido"; }
+    if (/INVALID_EMAIL/.test(msg)) { return "email-invalido"; }
     if (/USER_DISABLED/.test(msg)) { return "conta-desativada"; }
+    if (/INVALID_ID_TOKEN|TOKEN_EXPIRED|USER_NOT_FOUND|CREDENTIAL_TOO_OLD/.test(msg)) { return "sessao"; }
     return "desconhecido";
   }
 
@@ -769,17 +860,34 @@
     return dados;
   }
 
-  async function criarContaReal(usuario, senha) {
-    const d = await chamar("signUp", { email: emailInterno(usuario), password: senha, returnSecureToken: true });
+  async function enviarVerificacao(idToken) {
+    await chamar("sendOobCode", { requestType: "VERIFY_EMAIL", idToken: idToken });
+  }
+
+  async function consultarVerificado(idToken) {
+    const d = await chamar("lookup", { idToken: idToken });
+    const u = d.users && d.users[0];
+    return !!(u && u.emailVerified);
+  }
+
+  async function criarContaReal(usuario, email, senha) {
+    const d = await chamar("signUp", { email: email, password: senha, returnSecureToken: true });
     try {
       await chamar("update", { idToken: d.idToken, displayName: usuario, returnSecureToken: false });
     } catch (e) { /* segue sem o nome */ }
-    return { nome: usuario, localId: d.localId, idToken: d.idToken, refreshToken: d.refreshToken, expira: Date.now() + Number(d.expiresIn || 3600) * 1000 };
+    try { await enviarVerificacao(d.idToken); } catch (e) { /* a pessoa pode pedir o reenvio na janela de confirmação */ }
+    return { nome: usuario, email: email, emailVerificado: false, localId: d.localId, idToken: d.idToken, refreshToken: d.refreshToken, expira: Date.now() + Number(d.expiresIn || 3600) * 1000 };
   }
 
-  async function entrarContaReal(usuario, senha) {
-    const d = await chamar("signInWithPassword", { email: emailInterno(usuario), password: senha, returnSecureToken: true });
-    return { nome: d.displayName || usuario, localId: d.localId, idToken: d.idToken, refreshToken: d.refreshToken, expira: Date.now() + Number(d.expiresIn || 3600) * 1000 };
+  async function entrarContaReal(email, senha) {
+    const d = await chamar("signInWithPassword", { email: email, password: senha, returnSecureToken: true });
+    let verificado;
+    try { verificado = await consultarVerificado(d.idToken); }
+    catch (e) { throw { code: "rede", message: String((e && e.message) || e) }; }
+    if (!verificado) {
+      throw { code: "nao-verificado", message: "", pendente: { idToken: d.idToken, email: email } };
+    }
+    return { nome: d.displayName || email.split("@")[0], email: email, emailVerificado: verificado, localId: d.localId, idToken: d.idToken, refreshToken: d.refreshToken, expira: Date.now() + Number(d.expiresIn || 3600) * 1000 };
   }
 
   /* ---------- modo de teste (só neste navegador, para ver a tela funcionando) ---------- */
@@ -794,9 +902,9 @@
     return "x" + h;
   }
 
-  async function criarContaTeste(usuario, senha) {
+  async function criarContaTeste(usuario, email, senha) {
     const contas = lerContas();
-    const id = usuario.toLowerCase();
+    const id = email.toLowerCase();
     if (temConta(contas, id)) { throw { code: "teste-em-uso", message: "" }; }
     const sal = Math.random().toString(36).slice(2);
     contas[id] = { nome: usuario, sal: sal, hash: await hashSenha(sal, senha) };
@@ -804,9 +912,9 @@
     return { teste: true, nome: usuario };
   }
 
-  async function entrarContaTeste(usuario, senha) {
+  async function entrarContaTeste(email, senha) {
     const contas = lerContas();
-    const id = usuario.toLowerCase();
+    const id = email.toLowerCase();
     if (!temConta(contas, id) || (await hashSenha(contas[id].sal, senha)) !== contas[id].hash) {
       throw { code: "teste-credenciais", message: "" };
     }
@@ -819,11 +927,21 @@
     const s = lerSessao();
     if (!s || s.teste || !s.refreshToken) { return null; }
     if (s.expira && s.expira - Date.now() > 60000) { return s.idToken; }
-    const r = await fetch("https://securetoken.googleapis.com/v1/token?key=" + encodeURIComponent(firebaseConfig.apiKey), {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(s.refreshToken)
-    });
+    const controle = new AbortController();
+    const relogio = setTimeout(function () { controle.abort(); }, 12000);
+    let r;
+    try {
+      r = await fetch("https://securetoken.googleapis.com/v1/token?key=" + encodeURIComponent(firebaseConfig.apiKey), {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(s.refreshToken),
+        signal: controle.signal
+      });
+    } catch (e) {
+      throw { code: "rede", message: String((e && e.message) || e) };
+    } finally {
+      clearTimeout(relogio);
+    }
     if (!r.ok) { return null; }
     const d = await r.json();
     const nova = Object.assign({}, s, {
@@ -834,11 +952,59 @@
     guardarSessao(nova);
     return nova.idToken;
   }
+  /* ---------- confirmação de e-mail ---------- */
+  function mensagemVerificar(texto, tipo) {
+    const el = $("avisoVerificar");
+    el.textContent = texto;
+    el.className = "aviso" + (tipo ? " " + tipo : "");
+  }
+
+  // Pergunta ao Firebase se o e-mail já foi confirmado e guarda a resposta na sessão.
+  async function conferirEmail() {
+    const s = lerSessao();
+    if (!s || s.teste) { return true; }
+    if (s.emailVerificado === true) { return true; }
+    const t = await tokenValido();
+    if (!t) { throw { code: "sessao", message: "" }; }
+    const ok = await consultarVerificado(t);
+    if (ok) {
+      // expira: 0 faz o site pedir um token novo, já marcado como confirmado
+      const nova = Object.assign({}, lerSessao(), { emailVerificado: true, expira: 0 });
+      guardarSessao(nova);
+      atualizarConta(nova);
+    }
+    return ok;
+  }
+
+  function abrirVerificacao(recemCriada) {
+    const s = lerSessao();
+    const email = (pendente && pendente.email) || (s && s.email) || "o seu e-mail";
+    $("textoVerificar").textContent = pendente
+      ? "Sua conta só fica liberada depois de confirmar o e-mail " + email + ". Abra a mensagem que enviamos ao seu Gmail, clique no link e depois toque em Já confirmei. Se não achar, olhe o spam ou toque em Reenviar e-mail."
+      : recemCriada
+      ? "Enviamos um link de confirmação para " + email + ". Abra a mensagem, clique no link e depois toque em Já confirmei. Se não achar, olhe a caixa de spam."
+      : "Para comprar, confirme o e-mail " + email + ". Abra a mensagem que enviamos, clique no link e depois toque em Já confirmei. Se não achar, toque em Reenviar e-mail.";
+    mensagemVerificar("");
+    $("dlgVerificar").showModal();
+  }
+
+  // Devolve true se o e-mail está confirmado. Se não estiver, abre a janela de confirmação.
+  async function exigirEmailConfirmado() {
+    let erro = null;
+    try {
+      if (await conferirEmail()) { return true; }
+    } catch (err) { erro = err; }
+    abrirVerificacao(false);
+    if (erro) { mensagemVerificar(textoErro(erro), "erro"); }
+    return false;
+  }
+
   window.lojaAuth = {
     projeto: firebaseConfig.projectId,
     token: tokenValido,
     aoMudarConta: function (fn) { ouvintes.push(fn); fn(lerSessao()); },
-    entrar: function () { abrir(); }
+    entrar: function () { abrir(); },
+    exigirEmailConfirmado: exigirEmailConfirmado
   };
 
   /* ---------- diagnóstico da conexão ---------- */
@@ -903,14 +1069,107 @@
     toastTimer = setTimeout(function () { t.classList.remove("mostra"); }, 3500);
   }
 
+  /* ---------- força da senha ---------- */
+  const niveisForca = [
+    { txt: "", cor: "transparent", w: 0 },
+    { txt: "Muito curta", cor: "#FF8A8A", w: 25 },
+    { txt: "Fraca", cor: "#FFB86B", w: 45 },
+    { txt: "Média", cor: "#F5E663", w: 70 },
+    { txt: "Forte", cor: "#6EF0A8", w: 100 }
+  ];
+  function atualizarForca() {
+    const s = $("senha").value;
+    let nivel = 0;
+    if (s.length > 0) {
+      if (s.length < 8) { nivel = 1; }
+      else {
+        let extras = 0;
+        if (/[a-z]/.test(s) && /[A-Z]/.test(s)) { extras++; }
+        if (/\d/.test(s)) { extras++; }
+        if (/[^A-Za-z0-9]/.test(s)) { extras++; }
+        if (s.length >= 12) { extras++; }
+        nivel = extras <= 1 ? 2 : extras === 2 ? 3 : 4;
+      }
+    }
+    const info = niveisForca[nivel];
+    $("barraForca").style.width = info.w + "%";
+    $("barraForca").style.background = info.cor;
+    $("textoForca").textContent = info.txt ? "Força da senha: " + info.txt : "";
+  }
+
+  /* ---------- recuperar senha (o Firebase envia o link para o e-mail) ---------- */
+  async function recuperarSenha(email) {
+    if (usandoTeste) {
+      mensagem("A recuperação por e-mail não funciona no modo de teste. Crie uma conta de verdade para testar.", "erro");
+      return;
+    }
+    const botao = $("enviar");
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+    mensagem("Aguarde...");
+    let enviado = true;
+    try {
+      await chamar("sendOobCode", { requestType: "PASSWORD_RESET", email: email });
+    } catch (err) {
+      // Por segurança, não revelamos se o e-mail tem conta: só erros técnicos aparecem.
+      if (["credenciais", "email-invalido", "conta-desativada"].indexOf(err.code) < 0) {
+        enviado = false;
+        mensagem(textoErro(err), "erro");
+      }
+    }
+    if (!enviado) {
+      botao.disabled = false;
+      botao.textContent = "Enviar link";
+      return;
+    }
+    mensagem("Pronto! Se existir uma conta com " + email + ", enviamos um link para criar uma senha nova. Abra o Gmail, clique no link e confira o spam se não aparecer.", "ok");
+    let espera = 60;
+    botao.textContent = "Reenviar em " + espera + "s";
+    const relogio = setInterval(function () {
+      espera--;
+      if (espera <= 0) {
+        clearInterval(relogio);
+        botao.disabled = false;
+        botao.textContent = "Enviar link";
+      } else {
+        botao.textContent = "Reenviar em " + espera + "s";
+      }
+    }, 1000);
+  }
+
   function definirModo(novo) {
     modo = novo;
     const criar = novo === "criar";
-    $("abaEntrar").setAttribute("aria-selected", String(!criar));
+    const recuperar = novo === "recuperar";
+    const entrar = novo === "entrar";
+    $("abas").hidden = recuperar;
+    $("abaEntrar").setAttribute("aria-selected", String(entrar));
     $("abaCriar").setAttribute("aria-selected", String(criar));
-    $("dlgTitulo").textContent = criar ? "Criar sua conta" : "Entrar na sua conta";
-    $("enviar").textContent = criar ? "Criar conta" : "Entrar";
+    $("dlgTitulo").textContent = criar ? "Criar sua conta" : recuperar ? "Recuperar senha" : "Entrar na sua conta";
+    $("dlgSub").textContent = criar ? "Leva menos de um minuto."
+      : recuperar ? "Vamos mandar um link para o seu e-mail."
+      : "Bem-vindo de volta à Aqua Store.";
+    $("enviar").textContent = criar ? "Criar conta" : recuperar ? "Enviar link" : "Entrar";
     $("senha").autocomplete = criar ? "new-password" : "current-password";
+    $("campoNome").style.display = criar ? "" : "none";
+    $("campoSenha").hidden = recuperar;
+    $("campoConfirma").hidden = !criar;
+    $("forca").hidden = !criar;
+    $("esqueci").hidden = !entrar;
+    $("voltarLogin").hidden = !recuperar;
+    $("dicaConta").textContent = criar
+      ? "Nome: 3 a 20 letras, números ou _ (sem espaços). Senha: 8 caracteres ou mais, com letras e números."
+      : recuperar
+        ? "Digite o e-mail da sua conta. Enviamos um link para você criar uma senha nova."
+        : "Entre com o e-mail e a senha da sua conta.";
+    $("senha").value = "";
+    $("senha2").value = "";
+    document.querySelectorAll(".olho").forEach(function (b) {
+      $(b.getAttribute("data-alvo")).type = "password";
+      b.textContent = "Mostrar";
+      b.setAttribute("aria-label", "Mostrar senha");
+    });
+    atualizarForca();
     mensagem("");
   }
 
@@ -942,7 +1201,18 @@
         atualizarConta(null);
         toast("Você saiu da conta.");
       });
-      area.append(avatar, ola, sair);
+      if (!sessao.teste && sessao.emailVerificado !== true) {
+        const conf = document.createElement("button");
+        conf.type = "button";
+        conf.className = "botao pequeno";
+        conf.textContent = "Confirmar e-mail";
+        conf.addEventListener("click", async function () {
+          if (await exigirEmailConfirmado()) { toast("Seu e-mail já está confirmado."); }
+        });
+        area.append(avatar, ola, conf, sair);
+      } else {
+        area.append(avatar, ola, sair);
+      }
       $("tituloHero").textContent = "Olá, " + nome + "!";
       $("textoHero").textContent = "Você está conectado. Busque um jogo pelo nome ou explore a loja.";
     } else {
@@ -966,6 +1236,54 @@
   $("abaCriar").addEventListener("click", function () { definirModo("criar"); });
   $("fechar").addEventListener("click", function () { dlg.close(); });
 
+  $("jaConfirmei").addEventListener("click", async function () {
+    const botao = $("jaConfirmei");
+    botao.disabled = true;
+    mensagemVerificar("Conferindo...");
+    try {
+      const eraCadastro = !!pendente;
+      const emailPendente = pendente ? pendente.email : "";
+      if (await (pendente ? consultarVerificado(pendente.idToken) : conferirEmail())) {
+        mensagemVerificar("E-mail confirmado!", "ok");
+        await new Promise(function (r) { setTimeout(r, 700); });
+        pendente = null;
+        $("dlgVerificar").close();
+        if (eraCadastro) {
+          abrir();
+          definirModo("entrar");
+          $("email").value = emailPendente;
+          mensagem("E-mail confirmado! Agora entre com a sua senha.", "ok");
+        } else {
+          toast("E-mail confirmado. Agora você pode comprar.");
+        }
+      } else {
+        mensagemVerificar("Ainda não aparece como confirmado. Clique no link da mensagem e toque em Já confirmei de novo.", "erro");
+      }
+    } catch (err) {
+      mensagemVerificar(textoErro(err), "erro");
+    } finally {
+      botao.disabled = false;
+    }
+  });
+
+  $("reenviarLink").addEventListener("click", async function () {
+    const botao = $("reenviarLink");
+    botao.disabled = true;
+    mensagemVerificar("Enviando...");
+    try {
+      const t = pendente ? pendente.idToken : await tokenValido();
+      if (!t) { throw { code: "sessao", message: "" }; }
+      await enviarVerificacao(t);
+      mensagemVerificar("Enviamos de novo. Confira a caixa de entrada e o spam.", "ok");
+    } catch (err) {
+      mensagemVerificar(textoErro(err), "erro");
+    } finally {
+      botao.disabled = false;
+    }
+  });
+
+  $("fecharVerificar").addEventListener("click", function () { $("dlgVerificar").close(); });
+
   $("usarTeste").addEventListener("click", function () {
     usandoTeste = true;
     document.body.classList.add("modo-teste");
@@ -987,15 +1305,29 @@
   $("formConta").addEventListener("submit", async function (e) {
     e.preventDefault();
     const usuario = $("usuario").value.trim();
+    const email = $("email").value.trim();
     const senha = $("senha").value;
 
-    if (!/^[A-Za-z0-9_]{3,20}$/.test(usuario)) {
+    if (modo === "criar" && !/^[A-Za-z0-9_]{3,20}$/.test(usuario)) {
       mensagem("O nome deve ter de 3 a 20 letras, números ou _ (sem espaços ou acentos).", "erro");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      mensagem("Digite um e-mail válido, como nome@exemplo.com.", "erro");
+      return;
+    }
+    if (modo === "recuperar") { await recuperarSenha(email); return; }
     if (!senha) { mensagem("Digite sua senha.", "erro"); return; }
     if (modo === "criar" && senha.length < 8) {
       mensagem("A senha precisa ter pelo menos 8 caracteres.", "erro");
+      return;
+    }
+    if (modo === "criar" && !(/[A-Za-z]/.test(senha) && /\d/.test(senha))) {
+      mensagem("Use letras e números na senha.", "erro");
+      return;
+    }
+    if (modo === "criar" && senha !== $("senha2").value) {
+      mensagem("As senhas não são iguais. Digite a mesma senha nos dois campos.", "erro");
       return;
     }
 
@@ -1007,9 +1339,17 @@
     try {
       let sessao;
       if (usandoTeste) {
-        sessao = criando ? await criarContaTeste(usuario, senha) : await entrarContaTeste(usuario, senha);
+        sessao = criando ? await criarContaTeste(usuario, email, senha) : await entrarContaTeste(email, senha);
       } else {
-        sessao = criando ? await criarContaReal(usuario, senha) : await entrarContaReal(usuario, senha);
+        sessao = criando ? await criarContaReal(usuario, email, senha) : await entrarContaReal(email, senha);
+      }
+      if (criando && !sessao.teste) {
+        // Conta criada, mas só libera depois de confirmar o e-mail: não guarda sessão.
+        pendente = { idToken: sessao.idToken, email: email };
+        $("formConta").reset();
+        dlg.close();
+        abrirVerificacao(true);
+        return;
       }
       guardarSessao(sessao);
       atualizarConta(sessao);
@@ -1018,13 +1358,34 @@
       await new Promise(function (r) { setTimeout(r, 700); });
       dlg.close();
       toast(criando ? "Conta criada! Bem-vindo, " + sessao.nome + "." : "Bem-vindo de volta, " + sessao.nome + "!");
+      if (criando && !sessao.teste) { abrirVerificacao(true); }
     } catch (err) {
+      if (err && err.code === "nao-verificado") {
+        pendente = err.pendente;
+        dlg.close();
+        abrirVerificacao(false);
+        return;
+      }
       console.error("Erro no login:", err);
       mensagem(textoErro(err), "erro");
     } finally {
       $("enviar").disabled = false;
       $("enviar").textContent = rotulo;
     }
+  });
+
+  /* ---------- eventos novos: senha, recuperação e mostrar/ocultar ---------- */
+  $("senha").addEventListener("input", atualizarForca);
+  $("esqueci").addEventListener("click", function () { definirModo("recuperar"); });
+  $("voltarLogin").addEventListener("click", function () { definirModo("entrar"); });
+  document.querySelectorAll(".olho").forEach(function (b) {
+    b.addEventListener("click", function () {
+      const campo = $(b.getAttribute("data-alvo"));
+      const mostrar = campo.type === "password";
+      campo.type = mostrar ? "text" : "password";
+      b.textContent = mostrar ? "Ocultar" : "Mostrar";
+      b.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Mostrar senha");
+    });
   });
 
   /* ---------- início ---------- */
@@ -1630,9 +1991,10 @@
   $("detFechar").addEventListener("click", function () { $("dlgJogo").close(); });
 
   /* ---------- compra (um ou vários jogos) ---------- */
-  function lojaComprar(itens) {
+  async function lojaComprar(itens) {
     if (!sessaoAtual) { auth.entrar(); return; }
     if (!itens || itens.length === 0) { return; }
+    if (!(await auth.exigirEmailConfirmado())) { return; }
     itensEmCompra = itens.slice();
     $("compraNome").textContent = itens.map(function (j) { return j.nome; }).join(", ");
     $("compraPreco").textContent = moedaCompra.format(totalDe(itens));
@@ -1645,6 +2007,11 @@
   $("formCompra").addEventListener("submit", async function (e) {
     e.preventDefault();
     if (itensEmCompra.length === 0 || !sessaoAtual) { return; }
+    if (!sessaoAtual.teste && sessaoAtual.emailVerificado !== true) {
+      $("dlgCompra").close();
+      auth.exigirEmailConfirmado();
+      return;
+    }
     const lista = itensEmCompra.slice();
     const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
     const agora = new Date().toISOString();
